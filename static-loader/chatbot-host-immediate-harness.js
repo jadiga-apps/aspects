@@ -19,9 +19,6 @@
     var IFRAME_WIDTH = '100%';
     var IFRAME_HEIGHT = '100%';
 
-    var HOST_ORIGIN = window.location.origin;
-    var innerFrame = null;
-
     function readOptionalConfig() {
         var raw =
             document.currentScript &&
@@ -78,6 +75,8 @@
 
         var iframe = document.createElement('iframe');
         iframe.src = UI_URL;
+        iframe.title = 'Partner chatbot';
+        iframe.id = 'chatbot-iframe';
         iframe.sandbox = SANDBOX;
         iframe.referrerPolicy = 'strict-origin-when-cross-origin';
         // No `allow` attribute: chatbot PP denies geolocation, camera,
@@ -89,7 +88,6 @@
             IFRAME_HEIGHT +
             ';display:block;';
         document.body.appendChild(iframe);
-        innerFrame = iframe;
         console.log('[loader] chatbot iframe mounted', UI_URL);
         probeGeolocation();
     }
@@ -97,14 +95,19 @@
     // Forward hostToAspect chatbotOpen / contextUpdate into the inner UI so
     // TC-V2-031 can log receipt in the partner harness.
     window.addEventListener('message', function (e) {
-        if (e.origin !== HOST_ORIGIN) return;
+        console.log('[loader] hostToAspect message received', e.data.type);
         var msg = e.data;
         if (!msg || (msg.type !== 'chatbotOpen' && msg.type !== 'contextUpdate')) {
             return;
         }
-        if (!innerFrame || !innerFrame.contentWindow) return;
-        innerFrame.contentWindow.postMessage(msg, UI_ORIGIN);
-        console.log('[loader] forwarded hostToAspect to inner UI', msg.type);
+        // wait for 10s before below code is executed
+        setTimeout(function () {
+            var innerFrame = document.getElementById('chatbot-iframe');
+            if (innerFrame) {
+                innerFrame.contentWindow.postMessage(msg, UI_ORIGIN);
+                console.log('[loader] forwarded hostToAspect to inner UI', msg.type);
+            }
+        }, 10000);
     });
 
     var cfg = readOptionalConfig();
