@@ -22,23 +22,28 @@
         iframe.src = UI_URL;
         iframe.title = 'Partner chatbot';
         iframe.sandbox = SANDBOX;
+        iframe.id = 'chatbot-iframe';
         // Send the sandbox origin as the referrer so partner-ui can target
         iframe.referrerPolicy = 'strict-origin-when-cross-origin';
         iframe.style.cssText = 'border:0;width:100%;height:100%;display:block;';
         document.body.appendChild(iframe);
-        innerFrame = iframe;
     }
 
     // Forward hostToAspect chatbotOpen / contextUpdate into the inner UI.
     window.addEventListener('message', function (e) {
-        if (e.origin !== HOST_ORIGIN) return;
+        console.log('[loader] hostToAspect message received', e.data.type);
         var msg = e.data;
         if (!msg || (msg.type !== 'chatbotOpen' && msg.type !== 'contextUpdate')) {
             return;
-        }
-        if (!innerFrame || !innerFrame.contentWindow) return;
-        innerFrame.contentWindow.postMessage(msg, UI_ORIGIN);
-        console.log('[loader] forwarded hostToAspect to inner UI', msg.type);
+        }        
+        // wait for 10s before below code is executed
+        setTimeout(() => {
+            const innerFrame = document.getElementById('chatbot-iframe');
+            if (innerFrame) {
+                innerFrame.contentWindow.postMessage(msg, UI_ORIGIN);
+                console.log('[loader] forwarded hostToAspect to inner UI', msg.type);
+            }
+        }, 10000);
     });
 
     mount();
