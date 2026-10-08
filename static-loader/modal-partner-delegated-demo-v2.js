@@ -20,7 +20,7 @@
         iframe.id = 'modal-iframe';
         iframe.sandbox = SANDBOX;
         iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-        iframe.style.cssText = 'border:0;width:980px;height:100%;display:block;';
+        iframe.style.cssText = 'border:0;width:980px;height:600px;display:block;';
         document.body.appendChild(iframe);
     }
 
